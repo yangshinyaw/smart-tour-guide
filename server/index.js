@@ -1,45 +1,41 @@
-// server/index.js
-const express = require('express');
-const cors = require('cors');
-const { OpenAI } = require('openai');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import fetch from "node-fetch";
 
+dotenv.config();
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const PORT = process.env.PORT || 5000;
+const HF_API_TOKEN = process.env.HF_API_KEY;
+const HF_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"; // or your preferred model
 
-// Basic Route
-app.get('/', (req, res) => {
-  res.send('SmartTour API is running 🚀');
-});
-
-// AI Route for generating itinerary
-app.post('/generate-itinerary', async (req, res) => {
-  const { destination, days, interests } = req.body;
-
-  // Prompt for OpenAI
-  const prompt = `Create a ${days}-day itinerary for a trip to ${destination} focusing on ${interests}.`;
+app.post("/api/itinerary", async (req, res) => {
+  const prompt = req.body.prompt;
 
   try {
-    const response = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',  // Change to GPT-3.5
-        messages: [
-          { role: 'system', content: 'You are a helpful travel assistant.' },
-          { role: 'user', content: `Plan a ${days}-day trip to ${destination} focusing on ${interests}.` }
-        ]
-      });
+    const response = await fetch(`https://api-inference.huggingface.co/models/${HF_MODEL}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${HF_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ inputs: prompt }),
+    });
 
-    const itinerary = response.choices[0].message.content;
+    const data = await response.json();
+
+    if (data.error) {
+      return res.status(500).json({ error: data.error });
+    }
+
+    const itinerary = data[0]?.generated_text || "No response from model.";
     res.json({ itinerary });
-  } catch (error) {
-    console.error('Error generating itinerary:', error);
-    res.status(500).json({ error: 'Failed to generate itinerary' });
+  } catch (err) {
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
