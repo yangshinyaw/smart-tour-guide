@@ -9,7 +9,13 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const generateItinerary = async () => {
+  // 🎲 Surprise cities
+  const cities = [
+    "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
+    "Cairo", "Lisbon", "Buenos Aires", "Sydney", "Istanbul"
+  ];
+
+  const generateItinerary = async (customPrompt = prompt) => {
     setLoading(true);
     setError("");
     setItinerary("");
@@ -19,7 +25,7 @@ function App() {
       const response = await fetch("http://localhost:5000/api/itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: customPrompt }),
       });
 
       const data = await response.json();
@@ -29,6 +35,14 @@ function App() {
     }
 
     setLoading(false);
+  };
+
+  // 🎲 Surprise Me Function
+  const handleSurpriseMe = () => {
+    const randomCity = cities[Math.floor(Math.random() * cities.length)];
+    const surprisePrompt = `Generate a 1-day itinerary for ${randomCity}`;
+    setPrompt(surprisePrompt);
+    generateItinerary(surprisePrompt);
   };
 
   return (
@@ -49,7 +63,7 @@ function App() {
         <h1 className="text-4xl font-bold">Smart Tour Guide</h1>
       </motion.div>
 
-      {/* Input & Button */}
+      {/* Input & Buttons */}
       <motion.div
         className="flex flex-col items-center space-y-4 w-full max-w-xl"
         initial={{ y: 20, opacity: 0 }}
@@ -62,15 +76,27 @@ function App() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-          onClick={generateItinerary}
-          className="px-6 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition font-semibold"
-          disabled={loading}
-        >
-          {loading ? "Generating..." : "Generate Itinerary"}
-        </motion.button>
+        <div className="flex gap-4">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={() => generateItinerary()}
+            className="px-6 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition font-semibold"
+            disabled={loading}
+          >
+            {loading ? "Generating..." : "Generate Itinerary"}
+          </motion.button>
+
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={handleSurpriseMe}
+            className="px-6 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 transition font-semibold text-black"
+            disabled={loading}
+          >
+            🎲 Surprise Me!
+          </motion.button>
+        </div>
 
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
@@ -89,9 +115,7 @@ function App() {
               cursor: "_",
             }}
             onInit={(typewriter) => {
-              typewriter
-                .typeString(itinerary)
-                .start();
+              typewriter.typeString(itinerary).start();
             }}
           />
         </motion.div>
