@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Typewriter from "typewriter-effect";
 
 function App() {
   const [prompt, setPrompt] = useState("generate a 1 day itinerary to");
   const [itinerary, setItinerary] = useState("");
+  const [typed, setTyped] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -11,6 +13,7 @@ function App() {
     setLoading(true);
     setError("");
     setItinerary("");
+    setTyped("");
 
     try {
       const response = await fetch("http://localhost:5000/api/itinerary", {
@@ -46,7 +49,7 @@ function App() {
         <h1 className="text-4xl font-bold">Smart Tour Guide</h1>
       </motion.div>
 
-      {/* Form Section */}
+      {/* Input & Button */}
       <motion.div
         className="flex flex-col items-center space-y-4 w-full max-w-xl"
         initial={{ y: 20, opacity: 0 }}
@@ -72,15 +75,25 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Itinerary Display */}
+      {/* Typing Animation */}
       {itinerary && (
         <motion.div
-          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl whitespace-pre-line"
+          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {itinerary}
+          <Typewriter
+            options={{
+              delay: 15,
+              cursor: "_",
+            }}
+            onInit={(typewriter) => {
+              typewriter
+                .typeString(itinerary)
+                .start();
+            }}
+          />
         </motion.div>
       )}
     </motion.div>
