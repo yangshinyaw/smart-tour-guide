@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
 
@@ -8,8 +8,11 @@ function App() {
   const [typed, setTyped] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [favorites, setFavorites] = useState(() => {
+    const stored = localStorage.getItem("favorites");
+    return stored ? JSON.parse(stored) : [];
+  });
 
-  // 🎲 Surprise cities
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
     "Cairo", "Lisbon", "Buenos Aires", "Sydney", "Istanbul"
@@ -37,12 +40,18 @@ function App() {
     setLoading(false);
   };
 
-  // 🎲 Surprise Me Function
   const handleSurpriseMe = () => {
     const randomCity = cities[Math.floor(Math.random() * cities.length)];
     const surprisePrompt = `Generate a 1-day itinerary for ${randomCity}`;
     setPrompt(surprisePrompt);
     generateItinerary(surprisePrompt);
+  };
+
+  const saveFavorite = () => {
+    if (!itinerary) return;
+    const newFavorites = [...favorites, itinerary];
+    setFavorites(newFavorites);
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
   };
 
   return (
@@ -118,7 +127,29 @@ function App() {
               typewriter.typeString(itinerary).start();
             }}
           />
+
+          {/* Save Button */}
+          <button
+            onClick={saveFavorite}
+            className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
+          >
+            💾 Save Itinerary
+          </button>
         </motion.div>
+      )}
+
+      {/* Saved Favorites Section */}
+      {favorites.length > 0 && (
+        <div className="mt-10 w-full max-w-xl">
+          <h2 className="text-2xl font-semibold mb-4">📚 Saved Itineraries</h2>
+          <ul className="space-y-4">
+            {favorites.map((fav, index) => (
+              <li key={index} className="bg-gray-800 p-4 rounded-lg text-sm">
+                {fav.slice(0, 300)}...
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </motion.div>
   );
