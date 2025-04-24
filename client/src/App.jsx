@@ -5,16 +5,14 @@ import Typewriter from "typewriter-effect";
 function App() {
   const [prompt, setPrompt] = useState("generate a 1 day itinerary to");
   const [itinerary, setItinerary] = useState("");
-  const [typed, setTyped] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [favorites, setFavorites] = useState(() => {
     const stored = localStorage.getItem("favorites");
     return stored ? JSON.parse(stored) : [];
   });
-
-  const [editMode, setEditMode] = useState(false);
-  const [editedItinerary, setEditedItinerary] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editedText, setEditedText] = useState("");
 
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
@@ -25,8 +23,6 @@ function App() {
     setLoading(true);
     setError("");
     setItinerary("");
-    setTyped("");
-    setEditMode(false);
 
     try {
       const response = await fetch("http://localhost:5000/api/itinerary", {
@@ -36,9 +32,7 @@ function App() {
       });
 
       const data = await response.json();
-      const result = data.itinerary || "No itinerary returned.";
-      setItinerary(result);
-      setEditedItinerary(result);
+      setItinerary(data.itinerary || "No itinerary returned.");
     } catch (err) {
       setError("Something went wrong. Try again.");
     }
@@ -58,6 +52,27 @@ function App() {
     const newFavorites = [...favorites, itinerary];
     setFavorites(newFavorites);
     localStorage.setItem("favorites", JSON.stringify(newFavorites));
+  };
+
+  const deleteFavorite = (index) => {
+    const newFavorites = [...favorites];
+    newFavorites.splice(index, 1);
+    setFavorites(newFavorites);
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
+  };
+
+  const startEditing = (index) => {
+    setEditingIndex(index);
+    setEditedText(favorites[index]);
+  };
+
+  const saveEditedFavorite = () => {
+    const updated = [...favorites];
+    updated[editingIndex] = editedText;
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
+    setEditingIndex(null);
+    setEditedText("");
   };
 
   return (
@@ -116,49 +131,31 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Itinerary Display */}
+      {/* Typing Animation */}
       {itinerary && (
         <motion.div
-          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed space-y-4"
+          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          {editMode ? (
-            <textarea
-              className="w-full h-60 p-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={editedItinerary}
-              onChange={(e) => setEditedItinerary(e.target.value)}
-            />
-          ) : (
-            <div className="whitespace-pre-line">
-              <Typewriter
-                options={{ delay: 15, cursor: "_" }}
-                onInit={(typewriter) => {
-                  typewriter.typeString(itinerary).start();
-                }}
-              />
-            </div>
-          )}
+          <Typewriter
+            options={{
+              delay: 15,
+              cursor: "_",
+            }}
+            onInit={(typewriter) => {
+              typewriter.typeString(itinerary).start();
+            }}
+          />
 
-          <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={() => {
-                if (editMode) setItinerary(editedItinerary);
-                setEditMode(!editMode);
-              }}
-              className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 transition font-semibold"
-            >
-              {editMode ? "✅ Save Edits" : "✏️ Edit Itinerary"}
-            </button>
-
-            <button
-              onClick={saveFavorite}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
-            >
-              💾 Save Itinerary
-            </button>
-          </div>
+          {/* Save Button */}
+          <button
+            onClick={saveFavorite}
+            className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
+          >
+            💾 Save Itinerary
+          </button>
         </motion.div>
       )}
 
@@ -169,7 +166,48 @@ function App() {
           <ul className="space-y-4">
             {favorites.map((fav, index) => (
               <li key={index} className="bg-gray-800 p-4 rounded-lg text-sm">
-                {fav.slice(0, 300)}...
+                {editingIndex === index ? (
+                  <>
+                    <textarea
+                      value={editedText}
+                      onChange={(e) => setEditedText(e.target.value)}
+                      className="w-full p-2 text-black rounded-md mb-2"
+                      rows={5}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveEditedFavorite}
+                        className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md text-sm"
+                      >
+                        ✅ Save
+                      </button>
+                      <button
+                        onClick={() => setEditingIndex(null)}
+                        className="bg-gray-500 hover:bg-gray-600 px-3 py-1 rounded-md text-sm"
+                      >
+                        ❌ Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>{fav.slice(0, 300)}...</p>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => startEditing(index)}
+                        className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded-md text-sm text-black"
+                      >
+                        📝 Edit
+                      </button>
+                      <button
+                        onClick={() => deleteFavorite(index)}
+                        className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </>
+                )}
               </li>
             ))}
           </ul>
