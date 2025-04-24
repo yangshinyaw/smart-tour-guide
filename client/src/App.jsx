@@ -13,6 +13,9 @@ function App() {
     return stored ? JSON.parse(stored) : [];
   });
 
+  const [editMode, setEditMode] = useState(false);
+  const [editedItinerary, setEditedItinerary] = useState("");
+
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
     "Cairo", "Lisbon", "Buenos Aires", "Sydney", "Istanbul"
@@ -23,6 +26,7 @@ function App() {
     setError("");
     setItinerary("");
     setTyped("");
+    setEditMode(false);
 
     try {
       const response = await fetch("http://localhost:5000/api/itinerary", {
@@ -32,7 +36,9 @@ function App() {
       });
 
       const data = await response.json();
-      setItinerary(data.itinerary || "No itinerary returned.");
+      const result = data.itinerary || "No itinerary returned.";
+      setItinerary(result);
+      setEditedItinerary(result);
     } catch (err) {
       setError("Something went wrong. Try again.");
     }
@@ -110,31 +116,49 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Typing Animation */}
+      {/* Itinerary Display */}
       {itinerary && (
         <motion.div
-          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
+          className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Typewriter
-            options={{
-              delay: 15,
-              cursor: "_",
-            }}
-            onInit={(typewriter) => {
-              typewriter.typeString(itinerary).start();
-            }}
-          />
+          {editMode ? (
+            <textarea
+              className="w-full h-60 p-4 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={editedItinerary}
+              onChange={(e) => setEditedItinerary(e.target.value)}
+            />
+          ) : (
+            <div className="whitespace-pre-line">
+              <Typewriter
+                options={{ delay: 15, cursor: "_" }}
+                onInit={(typewriter) => {
+                  typewriter.typeString(itinerary).start();
+                }}
+              />
+            </div>
+          )}
 
-          {/* Save Button */}
-          <button
-            onClick={saveFavorite}
-            className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
-          >
-            💾 Save Itinerary
-          </button>
+          <div className="flex gap-4 flex-wrap">
+            <button
+              onClick={() => {
+                if (editMode) setItinerary(editedItinerary);
+                setEditMode(!editMode);
+              }}
+              className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 transition font-semibold"
+            >
+              {editMode ? "✅ Save Edits" : "✏️ Edit Itinerary"}
+            </button>
+
+            <button
+              onClick={saveFavorite}
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
+            >
+              💾 Save Itinerary
+            </button>
+          </div>
         </motion.div>
       )}
 
