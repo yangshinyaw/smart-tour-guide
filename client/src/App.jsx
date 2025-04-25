@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
+import PDFExporter from "./PDFExporter"; // ✅ Import the component
 
 function App() {
   const [prompt, setPrompt] = useState("generate a 1 day itinerary to");
@@ -131,7 +132,7 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Typing Animation */}
+      {/* Typing Animation & PDF Export */}
       {itinerary && (
         <motion.div
           className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
@@ -139,23 +140,29 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Typewriter
-            options={{
-              delay: 15,
-              cursor: "_",
-            }}
-            onInit={(typewriter) => {
-              typewriter.typeString(itinerary).start();
-            }}
-          />
+          <div id="itinerary-content"> {/* ✅ This is what PDFExporter targets */}
+            <Typewriter
+              options={{
+                delay: 15,
+                cursor: "_",
+              }}
+              onInit={(typewriter) => {
+                typewriter.typeString(itinerary).start();
+              }}
+            />
+          </div>
 
-          {/* Save Button */}
-          <button
-            onClick={saveFavorite}
-            className="mt-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
-          >
-            💾 Save Itinerary
-          </button>
+          {/* Save and Export Buttons */}
+          <div className="flex gap-4 mt-4">
+            <button
+              onClick={saveFavorite}
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
+            >
+              💾 Save Itinerary
+            </button>
+
+            <PDFExporter targetRefId="itinerary-content" /> {/* ✅ Export Button */}
+          </div>
         </motion.div>
       )}
 
