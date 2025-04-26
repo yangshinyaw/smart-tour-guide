@@ -15,6 +15,10 @@ function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedText, setEditedText] = useState("");
 
+  // 🆕 New States for Refine Feature
+  const [showRefineModal, setShowRefineModal] = useState(false);
+  const [refinePrompt, setRefinePrompt] = useState("");
+
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
     "Cairo", "Lisbon", "Buenos Aires", "Sydney", "Istanbul"
@@ -74,6 +78,15 @@ function App() {
     localStorage.setItem("favorites", JSON.stringify(updated));
     setEditingIndex(null);
     setEditedText("");
+  };
+
+  // 🆕 Refine Handlers
+  const openRefineModal = () => setShowRefineModal(true);
+  const handleRefineSubmit = async () => {
+    const newPrompt = `Regenerate a ${prompt} with these changes: ${refinePrompt}`;
+    await generateItinerary(newPrompt);
+    setShowRefineModal(false);
+    setRefinePrompt("");
   };
 
   return (
@@ -140,7 +153,7 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div id="itinerary-content"> {/* ✅ This is what PDFExporter targets */}
+          <div id="itinerary-content">
             <Typewriter
               options={{
                 delay: 15,
@@ -152,8 +165,8 @@ function App() {
             />
           </div>
 
-          {/* Save and Export Buttons */}
-          <div className="flex gap-4 mt-4">
+          {/* Save, Export, and Refine Buttons */}
+          <div className="flex gap-4 mt-4 flex-wrap">
             <button
               onClick={saveFavorite}
               className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
@@ -161,7 +174,15 @@ function App() {
               💾 Save Itinerary
             </button>
 
-            <PDFExporter targetRefId="itinerary-content" /> {/* ✅ Export Button */}
+            <PDFExporter targetRefId="itinerary-content" />
+
+            {/* 🆕 Refine Itinerary Button */}
+            <button
+              onClick={openRefineModal}
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition"
+            >
+              ✏️ Refine Itinerary
+            </button>
           </div>
         </motion.div>
       )}
@@ -218,6 +239,36 @@ function App() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* 🆕 Refine Modal */}
+      {showRefineModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-black w-96">
+            <h3 className="text-xl font-bold mb-4">Refine Itinerary</h3>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md mb-4"
+              placeholder="e.g., Focus on museums and local food."
+              rows={4}
+              value={refinePrompt}
+              onChange={(e) => setRefinePrompt(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowRefineModal(false)}
+                className="px-4 py-2 rounded-md bg-gray-400 hover:bg-gray-500 text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRefineSubmit}
+                className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </motion.div>
