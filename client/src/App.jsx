@@ -15,7 +15,6 @@ function App() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedText, setEditedText] = useState("");
 
-  // 🆕 New States for Refine Feature
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
 
@@ -80,8 +79,8 @@ function App() {
     setEditedText("");
   };
 
-  // 🆕 Refine Handlers
   const openRefineModal = () => setShowRefineModal(true);
+
   const handleRefineSubmit = async () => {
     const newPrompt = `Regenerate a ${prompt} with these changes: ${refinePrompt}`;
     await generateItinerary(newPrompt);
@@ -176,7 +175,6 @@ function App() {
 
             <PDFExporter targetRefId="itinerary-content" />
 
-            {/* 🆕 Refine Itinerary Button */}
             <button
               onClick={openRefineModal}
               className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition"
@@ -242,7 +240,7 @@ function App() {
         </div>
       )}
 
-      {/* 🆕 Refine Modal */}
+      {/* Refine Modal */}
       {showRefineModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-black w-96">
