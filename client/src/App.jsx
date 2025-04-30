@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import PDFExporter from "./PDFExporter";
+import Typewriter from "typewriter-effect";
+import PDFExporter from "./PDFExporter"; // ✅ Import the component
 
 function App() {
   const [prompt, setPrompt] = useState("generate a 1 day itinerary to");
@@ -87,12 +88,6 @@ function App() {
     setRefinePrompt("");
   };
 
-  // Split itinerary into list or paragraph items
-  const formatItinerary = (text) => {
-    const lines = text.split(/\n|•|-/).filter((line) => line.trim() !== "");
-    return lines;
-  };
-
   return (
     <motion.div
       className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start px-4 py-10 space-y-8"
@@ -149,7 +144,7 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Itinerary Display */}
+      {/* Typing Animation & PDF Export */}
       {itinerary && (
         <motion.div
           className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
@@ -157,20 +152,19 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div id="itinerary-content" className="space-y-2">
-            {formatItinerary(itinerary).map((item, idx) => (
-              <motion.p
-                key={idx}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-              >
-                • {item.trim()}
-              </motion.p>
-            ))}
+          <div id="itinerary-content">
+            <Typewriter
+              options={{
+                delay: 15,
+                cursor: "_",
+              }}
+              onInit={(typewriter) => {
+                typewriter.typeString(itinerary).start();
+              }}
+            />
           </div>
 
-          {/* Save, Export, Refine */}
+          {/* Save, Export, and Refine Buttons */}
           <div className="flex gap-4 mt-4 flex-wrap">
             <button
               onClick={saveFavorite}
@@ -191,7 +185,7 @@ function App() {
         </motion.div>
       )}
 
-      {/* Saved Favorites */}
+      {/* Saved Favorites Section */}
       {favorites.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
           <h2 className="text-2xl font-semibold mb-4">📚 Saved Itineraries</h2>
