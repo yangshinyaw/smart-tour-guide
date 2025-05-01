@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import PDFExporter from "./PDFExporter";
 
 function App() {
-  const [prompt, setPrompt] = useState("generate a 1 day itinerary to");
+  const [prompt, setPrompt] = useState("Generate a 1-day itinerary to");
   const [itinerary, setItinerary] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -13,7 +13,6 @@ function App() {
   });
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedText, setEditedText] = useState("");
-
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
 
@@ -78,29 +77,25 @@ function App() {
     setEditedText("");
   };
 
-  const openRefineModal = () => setShowRefineModal(true);
-
   const handleRefineSubmit = async () => {
-    const newPrompt = `Regenerate a ${prompt} with these changes: ${refinePrompt}`;
+    const newPrompt = `${prompt}. Refine with: ${refinePrompt}`;
     await generateItinerary(newPrompt);
     setShowRefineModal(false);
     setRefinePrompt("");
   };
 
-  // Split itinerary into list or paragraph items
   const formatItinerary = (text) => {
-    const lines = text.split(/\n|•|-/).filter((line) => line.trim() !== "");
-    return lines;
+    return text.split(/\n|•|-/).filter(line => line.trim());
   };
 
   return (
     <motion.div
-      className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-start px-4 py-10 space-y-8"
+      className="min-h-screen bg-gray-900 text-white flex flex-col items-center px-4 py-10 space-y-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Logo & Title */}
+      {/* Logo and Title */}
       <motion.div
         className="flex items-center space-x-4"
         initial={{ x: -50, opacity: 0 }}
@@ -111,7 +106,7 @@ function App() {
         <h1 className="text-4xl font-bold">Smart Tour Guide</h1>
       </motion.div>
 
-      {/* Input & Buttons */}
+      {/* Input and Buttons */}
       <motion.div
         className="flex flex-col items-center space-y-4 w-full max-w-xl"
         initial={{ y: 20, opacity: 0 }}
@@ -124,12 +119,12 @@ function App() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
         />
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap justify-center">
           <motion.button
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.05 }}
             onClick={() => generateItinerary()}
-            className="px-6 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition font-semibold"
+            className="px-6 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 font-semibold transition"
             disabled={loading}
           >
             {loading ? "Generating..." : "Generate Itinerary"}
@@ -139,17 +134,16 @@ function App() {
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.05 }}
             onClick={handleSurpriseMe}
-            className="px-6 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 transition font-semibold text-black"
+            className="px-6 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 font-semibold text-black transition"
             disabled={loading}
           >
             🎲 Surprise Me!
           </motion.button>
         </div>
-
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
-      {/* Itinerary Display */}
+      {/* Itinerary Output */}
       {itinerary && (
         <motion.div
           className="mt-6 bg-gray-800 p-6 rounded-lg w-full max-w-xl text-lg leading-relaxed"
@@ -170,7 +164,6 @@ function App() {
             ))}
           </div>
 
-          {/* Save, Export, Refine */}
           <div className="flex gap-4 mt-4 flex-wrap">
             <button
               onClick={saveFavorite}
@@ -182,7 +175,7 @@ function App() {
             <PDFExporter targetRefId="itinerary-content" />
 
             <button
-              onClick={openRefineModal}
+              onClick={() => setShowRefineModal(true)}
               className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition"
             >
               ✏️ Refine Itinerary
@@ -191,7 +184,7 @@ function App() {
         </motion.div>
       )}
 
-      {/* Saved Favorites */}
+      {/* Favorites */}
       {favorites.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
           <h2 className="text-2xl font-semibold mb-4">📚 Saved Itineraries</h2>
@@ -223,7 +216,7 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <p>{fav.slice(0, 300)}...</p>
+                    <p className="whitespace-pre-wrap">{fav.slice(0, 300)}...</p>
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={() => startEditing(index)}
