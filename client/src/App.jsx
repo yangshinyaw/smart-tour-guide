@@ -16,6 +16,7 @@ function App() {
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
   const [copied, setCopied] = useState(false);
+  const [itineraryHistory, setItineraryHistory] = useState([]); // Added history state
 
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
@@ -79,6 +80,12 @@ function App() {
   };
 
   const handleRefineSubmit = async () => {
+    // Save the current itinerary as the previous version
+    if (itinerary) {
+      setItineraryHistory((prevHistory) => [...prevHistory, itinerary]);
+    }
+
+    // Refine the itinerary
     const newPrompt = `${prompt}. Refine with: ${refinePrompt}`;
     await generateItinerary(newPrompt);
     setShowRefineModal(false);
@@ -199,6 +206,26 @@ function App() {
         </motion.div>
       )}
 
+      {/* Itinerary Version History */}
+      {itineraryHistory.length > 0 && (
+        <div className="mt-6 w-full max-w-xl">
+          <h2 className="text-xl font-semibold mb-4">📜 Version History</h2>
+          <ul className="space-y-4">
+            {itineraryHistory.map((version, index) => (
+              <li key={index} className="bg-gray-700 p-4 rounded-lg text-sm">
+                <p className="whitespace-pre-wrap">{version.slice(0, 200)}...</p>
+                <button
+                  onClick={() => setItinerary(version)}
+                  className="mt-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md text-sm text-white"
+                >
+                  View Version {index + 1}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
       {/* Favorites */}
       {favorites.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
@@ -261,23 +288,22 @@ function App() {
             <h3 className="text-xl font-bold mb-4">Refine Itinerary</h3>
             <textarea
               className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              placeholder="e.g., Focus on museums and local food."
-              rows={4}
+              placeholder="e.g., Focus on museums and historical sites."
               value={refinePrompt}
               onChange={(e) => setRefinePrompt(e.target.value)}
             />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowRefineModal(false)}
-                className="px-4 py-2 rounded-md bg-gray-400 hover:bg-gray-500 text-white"
-              >
-                Cancel
-              </button>
+            <div className="flex gap-4">
               <button
                 onClick={handleRefineSubmit}
-                className="px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
               >
-                Submit
+                Refine
+              </button>
+              <button
+                onClick={() => setShowRefineModal(false)}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+              >
+                Cancel
               </button>
             </div>
           </div>
