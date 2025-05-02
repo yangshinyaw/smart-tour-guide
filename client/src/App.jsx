@@ -15,6 +15,7 @@ function App() {
   const [editedText, setEditedText] = useState("");
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
@@ -86,6 +87,13 @@ function App() {
 
   const formatItinerary = (text) => {
     return text.split(/\n|•|-/).filter(line => line.trim());
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(itinerary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -164,7 +172,7 @@ function App() {
             ))}
           </div>
 
-          <div className="flex gap-4 mt-4 flex-wrap">
+          <div className="flex gap-4 mt-4 flex-wrap items-center">
             <button
               onClick={saveFavorite}
               className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition"
@@ -179,6 +187,13 @@ function App() {
               className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition"
             >
               ✏️ Refine Itinerary
+            </button>
+
+            <button
+              onClick={handleCopy}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 rounded-lg font-semibold transition"
+            >
+              📋 {copied ? "Copied!" : "Copy"}
             </button>
           </div>
         </motion.div>
