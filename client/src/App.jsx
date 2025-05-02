@@ -16,7 +16,9 @@ function App() {
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinePrompt, setRefinePrompt] = useState("");
   const [copied, setCopied] = useState(false);
-  const [itineraryHistory, setItineraryHistory] = useState([]); // Added history state
+  const [itineraryHistory, setItineraryHistory] = useState([]); // History state
+  const [currentItinerary, setCurrentItinerary] = useState(""); // To store the current itinerary
+  const [viewingHistory, setViewingHistory] = useState(false); // Track if viewing history
 
   const cities = [
     "Tokyo", "Paris", "New York", "Bangkok", "Barcelona",
@@ -36,7 +38,10 @@ function App() {
       });
 
       const data = await response.json();
-      setItinerary(data.itinerary || "No itinerary returned.");
+      const newItinerary = data.itinerary || "No itinerary returned.";
+      setItinerary(newItinerary);
+      setCurrentItinerary(newItinerary); // Save as current itinerary
+      setViewingHistory(false); // Reset viewing history state
     } catch (err) {
       setError("Something went wrong. Try again.");
     }
@@ -90,6 +95,20 @@ function App() {
     await generateItinerary(newPrompt);
     setShowRefineModal(false);
     setRefinePrompt("");
+  };
+
+  const viewHistoryVersion = (version) => {
+    // Save current view state before switching
+    if (!viewingHistory) {
+      setCurrentItinerary(itinerary);
+    }
+    setItinerary(version);
+    setViewingHistory(true);
+  };
+
+  const returnToCurrent = () => {
+    setItinerary(currentItinerary);
+    setViewingHistory(false);
   };
 
   const formatItinerary = (text) => {
@@ -158,6 +177,26 @@ function App() {
         {error && <p className="text-red-500">{error}</p>}
       </motion.div>
 
+      {/* Viewing History Banner */}
+      {viewingHistory && (
+        <motion.div
+          className="w-full max-w-xl bg-blue-500 p-3 rounded-lg text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <p className="font-medium">
+            You are viewing a previous version of the itinerary
+          </p>
+          <button
+            onClick={returnToCurrent}
+            className="mt-2 px-4 py-1 bg-white text-blue-600 rounded-md font-semibold hover:bg-blue-50 transition"
+          >
+            Return to Current Version
+          </button>
+        </motion.div>
+      )}
+
       {/* Itinerary Output */}
       {itinerary && (
         <motion.div
@@ -215,7 +254,7 @@ function App() {
               <li key={index} className="bg-gray-700 p-4 rounded-lg text-sm">
                 <p className="whitespace-pre-wrap">{version.slice(0, 200)}...</p>
                 <button
-                  onClick={() => setItinerary(version)}
+                  onClick={() => viewHistoryVersion(version)}
                   className="mt-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md text-sm text-white"
                 >
                   View Version {index + 1}
